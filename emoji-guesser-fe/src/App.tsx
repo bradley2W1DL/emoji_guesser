@@ -53,7 +53,8 @@ function App() {
   const [incorrectMessageTimer, setIncorrectMessageTimer] = useState<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
-    const newSocket = io('http://localhost:3001');
+    const SOCKET_URL = import.meta.env.VITE_SOCKET_URL || window.location.origin;
+    const newSocket = io(SOCKET_URL);
     setSocket(newSocket);
 
     newSocket.on('room_created', (data) => {

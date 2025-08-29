@@ -1,10 +1,29 @@
 const { createServer } = require('http');
 const { Server } = require('socket.io');
+const express = require('express');
+const path = require('path');
 
-const httpServer = createServer();
+const app = express();
+const httpServer = createServer(app);
+
+// Environment variables
+const PORT = process.env.PORT || 3001;
+const NODE_ENV = process.env.NODE_ENV || 'development';
+const FRONTEND_URL = process.env.FRONTEND_URL || "http://localhost:5173";
+
+// Serve static files from React build in production
+if (NODE_ENV === 'production') {
+  app.use(express.static(path.join(__dirname, 'emoji-guesser-fe/dist')));
+  
+  // Catch all handler for React routing
+  app.get('*', (req, res) => {
+    res.sendFile(path.join(__dirname, 'emoji-guesser-fe/dist/index.html'));
+  });
+}
+
 const io = new Server(httpServer, {
   cors: {
-    origin: "http://localhost:5173",
+    origin: NODE_ENV === 'production' ? true : FRONTEND_URL,
     methods: ["GET", "POST"]
   }
 });
@@ -332,7 +351,6 @@ io.on('connection', (socket) => {
   });
 });
 
-const PORT = process.env.PORT || 3001;
 httpServer.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });
