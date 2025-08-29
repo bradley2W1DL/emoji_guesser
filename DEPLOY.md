@@ -1,4 +1,4 @@
-## Claude recs for deployments
+## Claude recommendation for deployments using Railway
 
 1. server.js - Added Express and static file serving
   - Added Express.js dependency and static file serving
