@@ -24,6 +24,8 @@ interface GameState {
   finalLeaderboard: Player[];
   guess: string;
   roundStartTime: number | null;
+  currentAnswer: string | null;
+  showIncorrectMessage: boolean;
 }
 
 function App() {
@@ -42,9 +44,13 @@ function App() {
     winner: null,
     finalLeaderboard: [],
     guess: '',
-    roundStartTime: null
+    roundStartTime: null,
+    currentAnswer: null,
+    showIncorrectMessage: false
   });
   const [messages, setMessages] = useState<string[]>([]);
+  const [timeLeft, setTimeLeft] = useState<number>(60);
+  const [incorrectMessageTimer, setIncorrectMessageTimer] = useState<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
     const newSocket = io('http://localhost:3001');
@@ -95,26 +101,49 @@ function App() {
         emojis: data.emojis,
         difficulty: data.difficulty,
         guess: '',
-        roundStartTime: Date.now()
+        roundStartTime: Date.now(),
+        currentAnswer: null,
+        showIncorrectMessage: false
       }));
       setMessages([]);
+      setTimeLeft(60);
     });
 
     newSocket.on('correct_guess', (data) => {
       addMessage(`${data.playerName} got it right! (+${data.points} points)`);
+      setGameState(prev => ({
+        ...prev,
+        players: prev.players.map(player => 
+          player.socketId === data.playerId 
+            ? { ...player, totalScore: data.newScore }
+            : player
+        )
+      }));
     });
 
     newSocket.on('incorrect_guess', () => {
-      addMessage('Incorrect guess, try again!');
+      if (incorrectMessageTimer) {
+        clearTimeout(incorrectMessageTimer);
+      }
+      
+      setGameState(prev => ({ ...prev, showIncorrectMessage: true }));
+      
+      const timer = setTimeout(() => {
+        setGameState(prev => ({ ...prev, showIncorrectMessage: false }));
+      }, 5000);
+      
+      setIncorrectMessageTimer(timer);
     });
 
     newSocket.on('round_ended', (data) => {
-      addMessage(`Round ${gameState.currentRound} ended! Answer: ${data.answer}`);
+      addMessage(`Round ${gameState.currentRound} ended!`);
+      setTimeLeft(0);
       setGameState(prev => ({
         ...prev,
+        currentAnswer: data.answer,
         players: prev.players.map(player => {
-          const result = data.results.find((r: any) => r.playerId === player.socketId);
-          return result ? { ...player, totalScore: result.totalScore } : player;
+          const leaderboardPlayer = data.leaderboard.find((p: any) => p.socketId === player.socketId);
+          return leaderboardPlayer ? { ...player, totalScore: leaderboardPlayer.score } : player;
         })
       }));
     });
@@ -134,9 +163,29 @@ function App() {
     });
 
     return () => {
+      if (incorrectMessageTimer) {
+        clearTimeout(incorrectMessageTimer);
+      }
       newSocket.close();
     };
   }, []);
+
+  useEffect(() => {
+    let interval: NodeJS.Timeout;
+    if (gameState.screen === 'game' && timeLeft > 0) {
+      interval = setInterval(() => {
+        setTimeLeft(prev => {
+          if (prev <= 1) {
+            return 0;
+          }
+          return prev - 1;
+        });
+      }, 1000);
+    }
+    return () => {
+      if (interval) clearInterval(interval);
+    };
+  }, [gameState.screen, timeLeft]);
 
   const addMessage = (message: string) => {
     setMessages(prev => [...prev.slice(-4), message]);
@@ -176,9 +225,16 @@ function App() {
       winner: null,
       finalLeaderboard: [],
       guess: '',
-      roundStartTime: null
+      roundStartTime: null,
+      currentAnswer: null,
+      showIncorrectMessage: false
     });
     setMessages([]);
+    setTimeLeft(60);
+    if (incorrectMessageTimer) {
+      clearTimeout(incorrectMessageTimer);
+      setIncorrectMessageTimer(null);
+    }
   };
 
   if (gameState.screen === 'home') {
@@ -274,12 +330,28 @@ function App() {
         <div className="game">
           <div className="game-header">
             <h2>Round {gameState.currentRound} of {gameState.maxRounds}</h2>
+            <div className="timer">
+              <span className={`countdown ${timeLeft <= 10 ? 'urgent' : ''}`}>
+                ⏱️ {timeLeft}s
+              </span>
+            </div>
             <div className="difficulty">Difficulty: {'⭐'.repeat(gameState.difficulty)}</div>
           </div>
 
           <div className="emoji-display">
             <div className="emojis">{gameState.emojis}</div>
-            <p>What phrase or idiom do these emojis represent?</p>
+            {gameState.currentAnswer ? (
+              <div className="correct-answer-display">
+                🎯 <strong>ANSWER: {gameState.currentAnswer.toUpperCase()}</strong>
+              </div>
+            ) : (
+              <p>What phrase or idiom do these emojis represent?</p>
+            )}
+            {gameState.showIncorrectMessage && (
+              <div className="incorrect-message">
+                ❌ Incorrect guess, try again!
+              </div>
+            )}
           </div>
 
           <div className="guess-input">

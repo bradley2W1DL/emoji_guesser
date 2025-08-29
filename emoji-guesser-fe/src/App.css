@@ -153,6 +153,40 @@ body {
   margin-bottom: 0.5rem;
 }
 
+.timer {
+  margin: 1rem 0;
+}
+
+.countdown {
+  display: inline-block;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  padding: 0.75rem 1.5rem;
+  border-radius: 25px;
+  font-size: 1.2rem;
+  font-weight: 600;
+  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+  transition: all 0.3s ease;
+}
+
+.countdown.urgent {
+  background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%);
+  box-shadow: 0 4px 15px rgba(255, 107, 107, 0.4);
+  animation: pulse 1s infinite;
+}
+
+@keyframes pulse {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.05);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
 .difficulty {
   color: #666;
   font-size: 1.1rem;
@@ -175,6 +209,59 @@ body {
 .emoji-display p {
   color: #666;
   font-size: 1.1rem;
+}
+
+.correct-answer-display {
+  background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+  color: white;
+  padding: 1rem 2rem;
+  border-radius: 15px;
+  font-size: 1.3rem;
+  margin-top: 1rem;
+  box-shadow: 0 4px 20px rgba(40, 167, 69, 0.3);
+  animation: fadeInScale 0.5s ease-out;
+}
+
+.incorrect-message {
+  background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+  color: white;
+  padding: 0.75rem 1.5rem;
+  border-radius: 10px;
+  font-size: 1.1rem;
+  font-weight: 600;
+  margin-top: 1rem;
+  box-shadow: 0 4px 15px rgba(220, 53, 69, 0.3);
+  animation: fadeInOut 5s ease-in-out;
+}
+
+@keyframes fadeInScale {
+  0% {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes fadeInOut {
+  0% {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  10% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  90% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
 }
 
 .guess-input {
@@ -245,6 +332,7 @@ body {
   font-size: 0.9rem;
   color: #333;
 }
+
 
 .message:last-child {
   margin-bottom: 0;

@@ -237,7 +237,9 @@ io.on('connection', (socket) => {
         timeToAnswer,
         points,
         playersAnswered: room.roundAnswers.size,
-        totalPlayers: room.players.size
+        totalPlayers: room.players.size,
+        playerId: socket.id,
+        newScore: room.players.get(socket.id).totalScore
       });
       
       if (room.roundAnswers.size === room.players.size) {
