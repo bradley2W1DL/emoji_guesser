@@ -400,7 +400,7 @@ function App() {
           {gameState.winner && (
             <div className="winner">
               <h2>Winner: {gameState.winner.name}</h2>
-              <p>{gameState.winner.score} points</p>
+              <p>{gameState.winner.totalScore} points</p>
             </div>
           )}
 
@@ -410,7 +410,7 @@ function App() {
               <div key={player.socketId} className="leaderboard-item">
                 <span className="rank">#{index + 1}</span>
                 <span className="name">{player.name}</span>
-                <span className="score">{player.score} pts</span>
+                <span className="score">{player.totalScore} pts</span>
               </div>
             ))}
           </div>

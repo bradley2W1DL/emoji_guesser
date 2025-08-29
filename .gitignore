@@ -1,0 +1,48 @@
+# Dependencies
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+# use yarn instead of npm...this will prevent accidentally
+# committing a package-lock file
+package-lock.json
+
+# Environment variables
+.env
+.env.local
+.env.production.local
+.env.development.local
+
+# Build outputs
+dist/
+build/
+
+# Logs
+*.log
+logs/
+
+# Runtime data
+pids
+*.pid
+*.seed
+*.pid.lock
+
+# Editor directories and files
+.vscode/
+.idea/
+.DS_Store
+*.swp
+*.swo
+*~
+
+# OS generated files
+Thumbs.db
+ehthumbs.db
+
+# Temporary files
+.tmp/
+.temp/
+
+# AI things
+.claude/settings.local.json
+
