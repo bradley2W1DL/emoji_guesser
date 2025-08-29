@@ -133,6 +133,58 @@ function getLeaderboard(room) {
     }));
 }
 
+function normalizeString(str) {
+  return str
+    .toLowerCase()
+    .replace(/[^\w\s]/g, '') // Remove punctuation
+    .replace(/\s+/g, ' ') // Normalize whitespace
+    .trim();
+}
+
+function calculateLevenshteinDistance(str1, str2) {
+  const matrix = Array(str2.length + 1).fill(null).map(() => Array(str1.length + 1).fill(null));
+  
+  for (let i = 0; i <= str1.length; i += 1) {
+    matrix[0][i] = i;
+  }
+  
+  for (let j = 0; j <= str2.length; j += 1) {
+    matrix[j][0] = j;
+  }
+  
+  for (let j = 1; j <= str2.length; j += 1) {
+    for (let i = 1; i <= str1.length; i += 1) {
+      const indicator = str1[i - 1] === str2[j - 1] ? 0 : 1;
+      matrix[j][i] = Math.min(
+        matrix[j][i - 1] + 1, // deletion
+        matrix[j - 1][i] + 1, // insertion
+        matrix[j - 1][i - 1] + indicator, // substitution
+      );
+    }
+  }
+  
+  return matrix[str2.length][str1.length];
+}
+
+function isAnswerAcceptable(guess, correctAnswer) {
+  const normalizedGuess = normalizeString(guess);
+  const normalizedAnswer = normalizeString(correctAnswer);
+  
+  // Exact match after normalization
+  if (normalizedGuess === normalizedAnswer) {
+    return true;
+  }
+  
+  // Allow up to 2 character differences for answers longer than 5 characters
+  // or 1 character difference for shorter answers
+  const maxDistance = normalizedAnswer.length > 5 ? 2 : 1;
+  const distance = calculateLevenshteinDistance(normalizedGuess, normalizedAnswer);
+  
+  // Accept if within distance threshold and not too different in length
+  const lengthDiff = Math.abs(normalizedGuess.length - normalizedAnswer.length);
+  return distance <= maxDistance && lengthDiff <= maxDistance;
+}
+
 function calculatePoints(timeToAnswer, difficulty) {
   const maxTime = 60000;
   const basePoints = difficulty * 100;
@@ -222,10 +274,10 @@ io.on('connection', (socket) => {
     const room = rooms.get(playerData.roomId);
     if (!room || room.gameState !== 'playing' || room.roundAnswers.has(socket.id)) return;
     
-    const guess = data.guess.toLowerCase().trim();
-    const correctAnswer = room.currentPhrase.answer.toLowerCase();
+    const guess = data.guess.trim();
+    const correctAnswer = room.currentPhrase.answer;
     
-    if (guess === correctAnswer) {
+    if (isAnswerAcceptable(guess, correctAnswer)) {
       const timeToAnswer = Date.now() - room.roundStartTime;
       const points = calculatePoints(timeToAnswer, room.currentPhrase.difficulty);
       

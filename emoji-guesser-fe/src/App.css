@@ -12,10 +12,22 @@ body {
 
 .app {
   min-height: 100vh;
+  height: 100vh;
+  width: 100vw;
   display: flex;
   align-items: center;
   justify-content: center;
   padding: 1rem;
+  overflow-y: auto;
+}
+
+/* For content that exceeds viewport height, allow scrolling while maintaining centering */
+@media (max-height: 800px) {
+  .app {
+    align-items: flex-start;
+    padding-top: 2rem;
+    padding-bottom: 2rem;
+  }
 }
 
 .home, .lobby, .game, .results {
@@ -25,6 +37,9 @@ body {
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
   max-width: 600px;
   width: 100%;
+  max-height: calc(100vh - 2rem);
+  overflow-y: auto;
+  position: relative;
 }
 
 .home h1, .results h1 {
